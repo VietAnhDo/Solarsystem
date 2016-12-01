@@ -5,7 +5,9 @@
 <!-- include for threex.glowdatgui -->
 <script src='vendor/three.js/examples/js/libs/dat.gui.min.js'></script>
 <script src="../threex.atmospheredatgui.js"></script>
-<body style='margin: 0px; background-color: #000000; overflow: hidden;'><script>
+<script src="../do_utils.js"></script>
+<body style='margin: 0px; background-color: #000000; overflow: hidden;' onkeydown="onKeyDown(event)"><script>
+	// document.addEventListener('keydown', onKeyDown(event));
 	var renderer	= new THREE.WebGLRenderer({
 		antialias	: true
 	});
@@ -15,8 +17,10 @@
 	
 	var onRenderFcts= [];
 	var scene	= new THREE.Scene();
-	var camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100 );
-	camera.position.z = 1;
+	var camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 10000 );
+	camera.position.z = 0.5;
+	camera.do_phi = Math.PI/180;
+	camera.do_dir = {x: 0, y:0, z:1.5};
 
 	var light	= new THREE.AmbientLight( 0x222222 )
 	scene.add( light )
@@ -55,14 +59,15 @@
 	// var datGUI	= new dat.GUI()
 
 	var containerEarth	= new THREE.Object3D()
-	containerEarth.rotateZ(-23.4 * Math.PI/180)
-	containerEarth.position.z	= 0
+	// containerEarth.rotateZ(-23.4 * Math.PI/180)
+	// containerEarth.position.z	= 0
 	scene.add(containerEarth)
 	var moonMesh	= THREEx.Planets.createMoon()
-	moonMesh.position.set(0.5,0.5,0.5)
+	moonMesh.position.set(0, 0, 2)
 	moonMesh.scale.multiplyScalar(1/5)
 	moonMesh.receiveShadow	= true
 	moonMesh.castShadow	= true
+	moonMesh.do_phi = Math.PI/3600;
 	containerEarth.add(moonMesh)
 
 	var earthMesh	= THREEx.Planets.createEarth()
@@ -70,7 +75,9 @@
 	earthMesh.castShadow	= true
 	containerEarth.add(earthMesh)
 	onRenderFcts.push(function(delta, now){
-		earthMesh.rotation.y += 1/32 * delta;		
+		earthMesh.rotation.y += 2 * delta;
+		moonMesh.rotation.y += 1 * delta;
+		turn(moonMesh.position, moonMesh.do_phi);
 	})
 
 	var geometry	= new THREE.SphereGeometry(0.5, 32, 32)
@@ -106,23 +113,23 @@
 	//		Camera Controls							//
 	//////////////////////////////////////////////////////////////////////////////////
 	var mouse	= {x : 0, y : 0}
-	document.addEventListener('mousemove', function(event){
-		mouse.x	= (event.clientX / window.innerWidth ) - 0.5
-		mouse.y	= (event.clientY / window.innerHeight) - 0.5
-	}, false)
-	onRenderFcts.push(function(delta, now){
-		camera.position.x += (mouse.x*5 - camera.position.x) * (delta*3)
-		camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
-		camera.lookAt( scene.position )
-	})
+	// document.addEventListener('mousemove', function(event){
+	// 	mouse.x	= (event.clientX / window.innerWidth ) - 0.5
+	// 	mouse.y	= (event.clientY / window.innerHeight) - 0.5
+	// }, false)
+	// onRenderFcts.push(function(delta, now){
+		// camera.position.x += (mouse.x*5 - camera.position.x) * (delta*3)
+		// camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
+		// camera.lookAt( addVect(camera.position, camera.do_dir) );
+	// })
 
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//		render the scene						//
 	//////////////////////////////////////////////////////////////////////////////////
-	onRenderFcts.push(function(){
-		renderer.render( scene, camera );		
-	})
+	// onRenderFcts.push(function(){
+		// renderer.render( scene, camera );		
+	// })
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	//		loop runner							//
@@ -139,5 +146,9 @@
 		onRenderFcts.forEach(function(onRenderFct){
 			onRenderFct(deltaMsec/1000, nowMsec/1000)
 		})
+		camera.lookAt( addVect(camera.position, camera.do_dir) );
+		renderer.render( scene, camera );		
 	})
+
+	
 </script></body>
