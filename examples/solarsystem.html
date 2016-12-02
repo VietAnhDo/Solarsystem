@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<head>
+	<title>Space Trip</title>
+	<script src='vendor/three.js/build/three.min.js' type='text/javascript'></script>
+	<script src='vendor/jquery-3.1.1.min.js' type='text/javascript'></script>
+	<script src='../threex.planets.js' type='text/javascript'></script>
+	<script src='../threex.atmospherematerial.js' type='text/javascript'></script>
+	<!-- include for threex.glowdatgui -->
+	<script src='vendor/three.js/examples/js/libs/dat.gui.min.js' type='text/javascript'></script>
+	<script src='vendor/js/controls/FlyControls.js' type='text/javascript'></script>
+</head>
+<body style='margin: 0px; background-color: #000000; overflow: hidden;' onkeydown="onKeyDown(event)"><script>
+	function onKeyDown(event) {
+		console.log(event);
+		if( event.key == 'c' && camera !== undefined) {
+			camera.lookAt(solarSystem.position);
+		}
+	}
+
+
+	// 
+	var container = document.createElement('div');
+	document.body.appendChild( container );
+
+	// AroundSun class
+	var AroundOrigin = class {
+		constructor(obj=null, angle=null) {
+			this.obj = obj;
+			this.angle = angle;
+		}
+		animate() {
+			var obj = this.obj;
+			var angle = this.angle;
+			var newZ, newX;
+			return function(delta) {
+				obj.rotation.z += angle * delta;
+				// console.log(obj.position);
+				// console.log(angle);
+				// newZ = obj.position.z * Math.cos(angle*delta) - obj.position.x * Math.sin(angle*delta);
+				// newX = obj.position.z * Math.sin(angle*delta) + obj.position.x * Math.cos(angle*delta);
+				// obj.position.set(newX, obj.position.y, newZ);
+			}
+		}
+	}
+	//
+	var aroundMotions = [];
+
+	// Clock
+	var clock = new THREE.Clock();
+
+	// scene
+	var scene	= new THREE.Scene();
+
+	// light
+	var light	= new THREE.AmbientLight( 0x111111 )
+	scene.add( light )
+
+	var light = new THREE.PointLight( 0xffffff, 2 , 10000, 1 );
+    light.position.set( 0, 0, 0 );
+    scene.add( light );  
+
+	// star fields
+	var starSphere	= THREEx.Planets.createStarfield();
+	scene.add(starSphere)
+
+	// camera
+	var camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000 );
+	camera.position.z = 30;
+
+	// FlyControls
+	var flyControls = new THREE.FlyControls(camera);
+	flyControls.movementSpeed = 20;
+	flyControls.domElement = container;
+	flyControls.rollSpeed = Math.PI / 6;
+	flyControls.autoForward = false;
+	flyControls.dragToLook = false;
+
+	// renderer
+	var renderer	= new THREE.WebGLRenderer({
+		antialias	: true
+	});
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	container.appendChild( renderer.domElement );
+	renderer.shadowMapEnabled	= true;
+
+	// onRenderFcts
+	var onRenderFcts = [];
+	// solarSystem
+	var solarSystem = new THREE.Object3D();
+	scene.add(solarSystem);
+
+	// Sun
+	var sunMesh = THREEx.Planets.createSun();
+	// sunMesh.scale.multiplyScalar(1);
+	solarSystem.add(sunMesh);
+	// Sun motions
+
+	// Mercury
+	var mercuryOrbit = new THREE.Object3D();
+	var mercuryMesh = THREEx.Planets.createMercury();
+	mercuryMesh.position.set(5, 0, 0);
+	mercuryOrbit.add(mercuryMesh);
+	solarSystem.add(mercuryOrbit);
+	// Mercury motions
+	onRenderFcts.push((new AroundOrigin(mercuryOrbit, Math.PI/18)).animate());
+	onRenderFcts.push((new AroundOrigin(mercuryMesh, Math.PI/3)).animate());
+
+	// Venus
+	var venusOrbit = new THREE.Object3D();
+	var venusMesh = THREEx.Planets.createVenus();
+	venusMesh.position.set(10, 0, 0);
+	venusOrbit.add(venusMesh);
+	solarSystem.add(venusOrbit);
+	// Venus motions
+	onRenderFcts.push((new AroundOrigin(venusOrbit, Math.PI/20)).animate());
+	onRenderFcts.push((new AroundOrigin(venusMesh, Math.PI/4)).animate());
+
+	// Earth and Moon
+	var earthOrbit = new THREE.Object3D();
+	var earthContainer = new THREE.Object3D();
+	earthContainer.position.set(15, 0, 0);
+	var earthMesh = THREEx.Planets.createEarth();
+	earthContainer.add(earthMesh);
+
+	var moonOrbit = new THREE.Object3D();
+	var moonMesh = THREEx.Planets.createMoon();
+	moonMesh.scale.multiplyScalar(0.2);
+	moonMesh.position.set(1, 0, 0);
+	moonOrbit.add(moonMesh);
+	earthContainer.add(moonOrbit);
+	earthOrbit.add(earthContainer);
+	solarSystem.add(earthOrbit);
+	// Earth and Moon motions
+	onRenderFcts.push((new AroundOrigin(earthOrbit, Math.PI/22)).animate());
+	onRenderFcts.push((new AroundOrigin(earthMesh, Math.PI/5)).animate());
+	onRenderFcts.push((new AroundOrigin(moonOrbit, Math.PI)).animate());
+	onRenderFcts.push((new AroundOrigin(moonMesh, Math.PI/2)).animate());
+
+
+	// Mars
+	// Jupiter
+	// Saturn
+	// Uranus
+	// Neptune
+
+	requestAnimationFrame(function animate(){
+		// keep looping
+		requestAnimationFrame( animate );
+		var deltaMsec	= clock.getDelta();
+		// call each update function
+		onRenderFcts.forEach(function(onRenderFct){
+			// console.log(deltaMsec/1000.0);
+			onRenderFct(deltaMsec);
+		})
+		flyControls.update(deltaMsec);
+		renderer.render( scene, camera );
+	})
+
+</script>
+</body>
