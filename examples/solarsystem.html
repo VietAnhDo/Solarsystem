@@ -28,6 +28,29 @@
 	var container = document.createElement('div');
 	document.body.appendChild( container );
 
+	// dashboard
+	var dashboard = document.createElement('div');
+	dashboard.style.position = "absolute";
+	dashboard.style.width = "100px";
+	dashboard.style.height = "50px";
+	dashboard.style.top = "0";
+	dashboard.style.bottom = "0";
+	dashboard.id = "dashboard";
+	dashboard.style.padding = "10px";
+	dashboard.style.boxSizing = "border-box";
+	dashboard.style.textAlign = "center";
+	// dashboard.style.backgroundColor = "0xffffff";
+	document.body.appendChild( dashboard );
+
+	var dashboardLabel = ["Stop", "Flying"];
+
+	var dashboardContent = document.createElement('span');
+	dashboardContent.style.color = "white";
+	dashboardContent.style.textAlign = "center";
+	dashboardContent.id = "dashboardContent";
+	dashboard.appendChild( dashboardContent);
+	dashboardContent.innerText = dashboardLabel[0];
+
 	// scene
 	var scene	= new THREE.Scene();
 	scene.add(solarSystem);
@@ -48,8 +71,8 @@
 	var flyControls = new THREE.FlyControls(camera, container);
 	flyControls.movementSpeed = 10;
 	flyControls.rollSpeed = Math.PI / 6;
-	flyControls.autoForward = false;
-	flyControls.dragToLook = false;
+	// flyControls.autoForward = false;
+	// flyControls.dragToLook = false;
 
 	// renderer
 	var renderer	= new THREE.WebGLRenderer({
@@ -111,32 +134,18 @@
 	function handgesture(hand) {
 		// change movementSpeed
 		let distBetweenIndexAndPinky = getDistance2F(hand.indexFinger.distal.center(), hand.pinky.distal.center());
-		// flyControls.movementSpeed = 100/(Math.sqr((distBetweenIndexAndPinky-50)/2)+2);
-		// flyControls.movementSpeed = Math.sqr(120 - distBetweenIndexAndPinky)/120;
 		flyControls.movementSpeed = Math.sqr(120 - distBetweenIndexAndPinky)/120;
 		let currentTime = new Date();
 		let delta = currentTime - lastTime;
 		lastTime = currentTime;
 		// console.log(getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()));
-		if( getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()) >= 145 ) {
-			timeOfGesture += delta;
-			if( timeOfGesture >= 350) {
-				flyControls.moveState.forward = 1 - flyControls.moveState.forward;
-				console.log(flyControls.moveState.forward)
-				timeOfGesture = 0;
-			}
-		}
-		else {
-			if( timeOfGesture > 0 )
-				a.push(timeOfGesture);
+		timeOfGesture += delta;
+		if( getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()) >= 170 && timeOfGesture >= 3000) {
+			flyControls.moveState.forward = 1 - flyControls.moveState.forward;
+			dashboardContent.innerText = dashboardLabel[flyControls.moveState.forward];
 			timeOfGesture = 0;
 		}
-		console.log(timeOfGesture);
-		// console.log(flyControls.moveState.forward);
 		flyControls.updateMovementVector();
-		// console.log((distBetweenIndexAndPinky-50)/2 +1);
-		// console.log(flyControls.movementSpeed);
-		// console.log(getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()));
 	}
 
 	Leap.loop(function(frame) {
@@ -148,7 +157,6 @@
 		} else {
 			flyControls.handstop();
 		}
-		console.log(flyControls.phi);
 	}).use('screenPosition', {scale: 0.25});
 
 </script>
