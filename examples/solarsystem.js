@@ -53,7 +53,6 @@ var clock = new THREE.Clock();
 var onRenderFcts = [];
 // solarSystem
 var solarSystem = new THREE.Object3D();
-scene.add(solarSystem);
 
 // Sun
 var sunMesh = THREEx.Planets.createSun();
@@ -63,7 +62,7 @@ initPlanet(sunMesh, {diameter: sunDiameter});
 // sun light
 var light = new THREE.PointLight( 0xffffff, 2 , 10000, 1 );
 light.position.set( 0, 0, 0 );
-scene.add( light );
+solarSystem.add( light );
 // Sun motions
 
 function initPlanet(planet, options = {}) {
@@ -80,16 +79,16 @@ function initPlanet(planet, options = {}) {
 // Mercury
 var mercuryOrbit = new THREE.Object3D();
 var mercuryMesh = THREEx.Planets.createMercury();
-initPlanet(mercuryMesh, {diameter: mercuryDiameter, distFromSun: mercuryDis, aroundItself: Math.PI/3});
+initPlanet(mercuryMesh, {diameter: mercuryDiameter, distFromSun: mercuryDis, aroundItself: Math.PI/32});
 mercuryOrbit.add(mercuryMesh);
 solarSystem.add(mercuryOrbit);
 // Mercury motions
-// onRenderFcts.push(aroundMotion(mercuryOrbit, Math.PI/18));
+// onRenderFcts.push(aroundMotion(mercuryOrbit, Math.PI/32));
 
 // Venus
 var venusOrbit = new THREE.Object3D();
 var venusMesh = THREEx.Planets.createVenus();
-initPlanet(venusMesh, {diameter: venusDiameter, distFromSun: venusDis, aroundItself: Math.PI/4});
+initPlanet(venusMesh, {diameter: venusDiameter, distFromSun: venusDis, aroundItself: Math.PI/32});
 venusOrbit.add(venusMesh);
 solarSystem.add(venusOrbit);
 // Venus motions
@@ -152,14 +151,14 @@ solarSystem.add(earthOrbit);
 var marsOrbit = new THREE.Object3D();
 var marsMesh = THREEx.Planets.createMars();
 marsOrbit.add(marsMesh);
-initPlanet(marsMesh, {diameter: marsDiameter, distFromSun: marsDis});
+initPlanet(marsMesh, {diameter: marsDiameter, distFromSun: marsDis, aroundItself: Math.PI/32});
 solarSystem.add(marsOrbit);
 
 // Jupiter
 var jupiterOrbit = new THREE.Object3D();
 var jupiterMesh = THREEx.Planets.createJupiter();
 jupiterOrbit.add(jupiterMesh);
-initPlanet(jupiterMesh, {diameter: jupiterDiameter, distFromSun: jupiterDis});
+initPlanet(jupiterMesh, {diameter: jupiterDiameter, distFromSun: jupiterDis, aroundItself: Math.PI/32});
 solarSystem.add(jupiterOrbit);
 
 // Saturn
@@ -172,7 +171,7 @@ var saturnRing	= THREEx.Planets.createSaturnRing()
 // saturnRing.receiveShadow	= true
 saturnRing.castShadow		= true
 saturnMesh.add(saturnRing)
-initPlanet(saturnMesh, {diameter: saturnDiameter, distFromSun: saturnDis});
+initPlanet(saturnMesh, {diameter: saturnDiameter, distFromSun: saturnDis, aroundItself: Math.PI/32});
 // console.log(jupiterDis/unit * ratio * 0.005);
 // console.log(saturnDis/unit * ratio * 0.005);
 solarSystem.add(saturnOrbit);
@@ -181,21 +180,21 @@ solarSystem.add(saturnOrbit);
 var uranusOrbit = new THREE.Object3D();
 var uranusMesh = THREEx.Planets.createUranus();
 uranusOrbit.add(uranusMesh);
-initPlanet(uranusMesh, {diameter: uranusDiameter, distFromSun: uranusDis});
+initPlanet(uranusMesh, {diameter: uranusDiameter, distFromSun: uranusDis, aroundItself: Math.PI/32});
 solarSystem.add(uranusOrbit);
 
 // Neptune
 var neptuneOrbit = new THREE.Object3D();
 var neptuneMesh = THREEx.Planets.createNeptune();
 neptuneOrbit.add(neptuneMesh);
-initPlanet(neptuneMesh, {diameter: neptuneDiameter, distFromSun: neptuneDis});
+initPlanet(neptuneMesh, {diameter: neptuneDiameter, distFromSun: neptuneDis, aroundItself: Math.PI/32});
 solarSystem.add(neptuneOrbit);
 
 //Pluto
 var plutoOrbit = new THREE.Object3D();
 var plutoMesh = THREEx.Planets.createPluto();
 plutoOrbit.add(plutoMesh);
-initPlanet(plutoMesh, {diameter: plutoDiameter, distFromSun: plutoDis});
+initPlanet(plutoMesh, {diameter: plutoDiameter, distFromSun: plutoDis, aroundItself: Math.PI/32});
 // console.log(plutoDiameter/unit * ratio);
 // console.log(plutoDis/unit * ratio * 0.005);
 solarSystem.add(plutoOrbit);

@@ -30,6 +30,7 @@
 
 	// scene
 	var scene	= new THREE.Scene();
+	scene.add(solarSystem);
 
 	// light
 	var light	= new THREE.AmbientLight( 0xffffff )
@@ -45,7 +46,7 @@
 
 	// FlyControls
 	var flyControls = new THREE.FlyControls(camera, container);
-	flyControls.movementSpeed = 100;
+	flyControls.movementSpeed = 10;
 	flyControls.rollSpeed = Math.PI / 6;
 	flyControls.autoForward = false;
 	flyControls.dragToLook = false;
@@ -102,11 +103,40 @@
 	function getDistance2F(x, y) {
 		return Math.sqrt(Math.sqr(x[0]-y[0]) + Math.sqr(x[1]-y[1]) + Math.sqr(x[2]-y[2]));
 	}
+
+	var lastTime = new Date();
+	var timeOfGesture = 0;
+	var a = new Array();
 	// change value depend on hand gesture
 	function handgesture(hand) {
 		// change movementSpeed
 		let distBetweenIndexAndPinky = getDistance2F(hand.indexFinger.distal.center(), hand.pinky.distal.center());
-		flyControls.movementSpeed = Math.cube(1 - distBetweenIndexAndPinky/120)*120;
+		// flyControls.movementSpeed = 100/(Math.sqr((distBetweenIndexAndPinky-50)/2)+2);
+		// flyControls.movementSpeed = Math.sqr(120 - distBetweenIndexAndPinky)/120;
+		flyControls.movementSpeed = Math.sqr(120 - distBetweenIndexAndPinky)/120;
+		let currentTime = new Date();
+		let delta = currentTime - lastTime;
+		lastTime = currentTime;
+		// console.log(getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()));
+		if( getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()) >= 145 ) {
+			timeOfGesture += delta;
+			if( timeOfGesture >= 350) {
+				flyControls.moveState.forward = 1 - flyControls.moveState.forward;
+				console.log(flyControls.moveState.forward)
+				timeOfGesture = 0;
+			}
+		}
+		else {
+			if( timeOfGesture > 0 )
+				a.push(timeOfGesture);
+			timeOfGesture = 0;
+		}
+		console.log(timeOfGesture);
+		// console.log(flyControls.moveState.forward);
+		flyControls.updateMovementVector();
+		// console.log((distBetweenIndexAndPinky-50)/2 +1);
+		// console.log(flyControls.movementSpeed);
+		// console.log(getDistance2F(hand.thumb.distal.center(), hand.pinky.distal.center()));
 	}
 
 	Leap.loop(function(frame) {
