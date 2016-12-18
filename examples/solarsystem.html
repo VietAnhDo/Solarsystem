@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <head>
 	<title>Space Trip</title>
+	<script src="http://js.leapmotion.com/leap-0.6.4.js"></script>
+  	<script src="http://js.leapmotion.com/leap-plugins-0.1.11.js"></script>
 	<script src='vendor/three.js/build/three.min.js' type='text/javascript'></script>
 	<script src='vendor/jquery-3.1.1.min.js' type='text/javascript'></script>
 	<script src='../threex.planets.js' type='text/javascript'></script>
@@ -8,69 +10,23 @@
 	<!-- include for threex.glowdatgui -->
 	<script src='vendor/three.js/examples/js/libs/dat.gui.min.js' type='text/javascript'></script>
 	<script src='vendor/js/controls/FlyControls.js' type='text/javascript'></script>
+	<script src='solarsystem.js' type='text/javascript'></script>
 </head>
 <body style='margin: 0px; background-color: #000000; overflow: hidden;' onkeydown="onKeyDown(event)"><script>
 
-	/*
-Planet	  Distance           Diameter
-Sun       0                  2*695,700 km
-Mercury	  57,910,000 km      4,800 km
-Venus	  108,200,000 km     12,100 km
-Earth	  149,600,000 km     12,750 km
-Mars	  227,940,000 km     6,800 km
-Jupiter	  778,330,000 km     142,800 km
-Saturn	  1,424,600,000 km   120,660 km
-Uranus	  2,873,550,000 km   51,800 km
-Neptune	  4,501,000,000 km   49,500 km
-Pluto	  5,945,900,000 km   3,300 km
-	*/
-	var ratio = 1;
-	var unit = 3300.0;
-
-	var sunDiameter    = 2*695700;
-	var mercuryDiameter = 4800;
-	var venusDiameter = 12100;
-	var earthDiameter = 12750;
-	var marsDiameter = 6800;
-	var jupiterDiameter = 142800;
-	var saturnDiameter = 120660;
-	var uranusDiameter = 51800;
-	var neptuneDiameter = 49500;
-	var plutoDiameter   = 3300;
-
-	var deltaDis = sunDiameter*500; // sunDiamenter / 2;
-	var mercuryDis = 57910000 + deltaDis;
-	var venusDis = 108200000 + deltaDis;
-	var earthDis = 149600000 + deltaDis;
-	var marsDis  = 227940000 + deltaDis;
-	var jupiterDis = 778330000 + deltaDis;
-	var saturnDis = 1424600000 + deltaDis;
-	var uranusDis  = 2873550000 + deltaDis;
-	var neptuneDis = 4501000000 + deltaDis;
-	var plutoDis   = 5945900000 + deltaDis;
+	
 
 	function onKeyDown(event) {
-		console.log(event);
-		if( event.key == 'c' && camera !== undefined) {
-			camera.lookAt(solarSystem.position);
+		// console.log(event);
+		if( event.key == 'c' && camera !== undefined && 
+			earthMesh !== undefined && earthMesh.position !== undefined) {
+			camera.lookAt(earthContainer.position);
 		}
 	}
 
 	// 
 	var container = document.createElement('div');
 	document.body.appendChild( container );
-
-	// AroundMotion
-	var aroundMotion = function(planet, angle) {
-		return function(delta) {
-			planet.rotation.z += angle * delta;
-		}
-	}
-	//
-	var aroundMotions = [];
-
-	// Clock
-	var clock = new THREE.Clock();
 
 	// scene
 	var scene	= new THREE.Scene();
@@ -79,22 +35,17 @@ Pluto	  5,945,900,000 km   3,300 km
 	var light	= new THREE.AmbientLight( 0xffffff )
 	scene.add( light )
 
-	var light = new THREE.PointLight( 0xffffff, 2 , 10000, 1 );
-    light.position.set( 0, 0, 0 );
-    scene.add( light );  
-
 	// star fields
 	var starSphere	= THREEx.Planets.createStarfield();
 	scene.add(starSphere)
 
 	// camera
-	var camera	= new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000000 );
+	var camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000 );
 	camera.position.z = 500;
 
 	// FlyControls
-	var flyControls = new THREE.FlyControls(camera);
-	flyControls.movementSpeed = 70;
-	flyControls.domElement = container;
+	var flyControls = new THREE.FlyControls(camera, container);
+	flyControls.movementSpeed = 100;
 	flyControls.rollSpeed = Math.PI / 6;
 	flyControls.autoForward = false;
 	flyControls.dragToLook = false;
@@ -107,132 +58,68 @@ Pluto	  5,945,900,000 km   3,300 km
 	container.appendChild( renderer.domElement );
 	renderer.shadowMapEnabled	= true;
 
-	// onRenderFcts
-	var onRenderFcts = [];
-	// solarSystem
-	var solarSystem = new THREE.Object3D();
-	scene.add(solarSystem);
-
-	// Sun
-	var sunMesh = THREEx.Planets.createSun();
-	// sunMesh.scale.multiplyScalar(1);
-	solarSystem.add(sunMesh);
-	initPlanet(sunMesh, {diameter: sunDiameter});
-	// Sun motions
-
-	function initPlanet(planet, options = {}) {
-		if(options.hasOwnProperty('diameter'))
-			planet.scale.multiplyScalar(options.diameter/unit * ratio);
-		if(options.hasOwnProperty('distFromSun'))
-			planet.position.set(options.distFromSun/unit * ratio * 0.001, 0, 0);
-		if(options.hasOwnProperty('aroundItself'))
-			onRenderFcts.push(aroundMotion(planet, options.aroundItself));
-		// console.log(planet);
-		// console.log(options.diameter/unit * ratio);
-		// console.log(options.distFromSun/unit * ratio);
-	}
-	// Mercury
-	var mercuryOrbit = new THREE.Object3D();
-	var mercuryMesh = THREEx.Planets.createMercury();
-	initPlanet(mercuryMesh, {diameter: mercuryDiameter, distFromSun: mercuryDis, aroundItself: Math.PI/3});
-	mercuryOrbit.add(mercuryMesh);
-	solarSystem.add(mercuryOrbit);
-	// Mercury motions
-	onRenderFcts.push(aroundMotion(mercuryOrbit, Math.PI/18));
-
-	// Venus
-	var venusOrbit = new THREE.Object3D();
-	var venusMesh = THREEx.Planets.createVenus();
-	initPlanet(venusMesh, {diameter: venusDiameter, distFromSun: venusDis, aroundItself: Math.PI/4});
-	venusOrbit.add(venusMesh);
-	solarSystem.add(venusOrbit);
-	// Venus motions
-	onRenderFcts.push(aroundMotion(venusOrbit, Math.PI/20));
-
-	// Earth and Moon
-	var earthOrbit = new THREE.Object3D();
-	var earthContainer = new THREE.Object3D();
-	var earthMesh = THREEx.Planets.createEarth();
-	earthContainer.add(earthMesh);
-	initPlanet(earthContainer, {diameter: earthDiameter, distFromSun: earthDis});
-	onRenderFcts.push(aroundMotion(earthMesh, Math.PI/5));
-
-	var moonOrbit = new THREE.Object3D();
-	var moonMesh = THREEx.Planets.createMoon();
-	initPlanet(moonMesh, {diameter: 330, distFromSun: 3300000, aroundItself: Math.PI/2});
-	moonOrbit.add(moonMesh);
-	earthContainer.add(moonOrbit);
-	earthOrbit.add(earthContainer);
-	solarSystem.add(earthOrbit);
-	// Earth and Moon motions
-	onRenderFcts.push(aroundMotion(earthOrbit, Math.PI/22));
-	onRenderFcts.push(aroundMotion(moonOrbit, Math.PI));
-
-
-	// Mars
-	var marsOrbit = new THREE.Object3D();
-	var marsMesh = THREEx.Planets.createMars();
-	marsOrbit.add(marsMesh);
-	initPlanet(marsMesh, {diameter: marsDiameter, distFromSun: marsDis});
-	solarSystem.add(marsOrbit);
-
-	// Jupiter
-	var jupiterOrbit = new THREE.Object3D();
-	var jupiterMesh = THREEx.Planets.createJupiter();
-	jupiterOrbit.add(jupiterMesh);
-	initPlanet(jupiterMesh, {diameter: jupiterDiameter, distFromSun: jupiterDis});
-	solarSystem.add(jupiterOrbit);
-
-	// Saturn
-	var saturnOrbit = new THREE.Object3D();
-	var saturnMesh = THREEx.Planets.createSaturn();
-	saturnOrbit.add(saturnMesh);
-	// saturnMesh.receiveShadow	= true
-	saturnMesh.castShadow		= true
-	var saturnRing	= THREEx.Planets.createSaturnRing()
-	// saturnRing.receiveShadow	= true
-	saturnRing.castShadow		= true
-	saturnMesh.add(saturnRing)
-	initPlanet(saturnMesh, {diameter: saturnDiameter, distFromSun: saturnDis});
-	console.log(jupiterDis/unit * ratio * 0.005);
-	console.log(saturnDis/unit * ratio * 0.005);
-	solarSystem.add(saturnOrbit);
-
-	// Uranus
-	var uranusOrbit = new THREE.Object3D();
-	var uranusMesh = THREEx.Planets.createUranus();
-	uranusOrbit.add(uranusMesh);
-	initPlanet(uranusMesh, {diameter: uranusDiameter, distFromSun: uranusDis});
-	solarSystem.add(uranusOrbit);
-
-	// Neptune
-	var neptuneOrbit = new THREE.Object3D();
-	var neptuneMesh = THREEx.Planets.createNeptune();
-	neptuneOrbit.add(neptuneMesh);
-	initPlanet(neptuneMesh, {diameter: neptuneDiameter, distFromSun: neptuneDis});
-	solarSystem.add(neptuneOrbit);
-
-	//Pluto
-	var plutoOrbit = new THREE.Object3D();
-	var plutoMesh = THREEx.Planets.createPluto();
-	plutoOrbit.add(plutoMesh);
-	initPlanet(plutoMesh, {diameter: plutoDiameter, distFromSun: plutoDis});
-	console.log(plutoDiameter/unit * ratio);
-	console.log(plutoDis/unit * ratio * 0.005);
-	solarSystem.add(plutoOrbit);
-
 	requestAnimationFrame(function animate(){
 		// keep looping
 		requestAnimationFrame( animate );
 		var deltaMsec	= clock.getDelta();
-		// call each update function
-		// onRenderFcts.forEach(function(onRenderFct){
+		// run update function
+		onRenderFcts.forEach(function(onRenderFct){
 			// console.log(deltaMsec/1000.0);
-			// onRenderFct(deltaMsec);
-		// })
+			onRenderFct(deltaMsec);
+		})
 		flyControls.update(deltaMsec);
 		renderer.render( scene, camera );
 	})
+
+	flyControls.handmove = function(hand) {
+		let dir = hand.direction;
+		let roll = hand.roll();
+		this.moveState.yawLeft   =   -dir[0];
+		this.moveState.pitchDown =   -dir[1];
+		if( roll > 0) {
+			this.moveState.rollLeft = roll/Math.PI;
+			this.moveState.rollRight = 0;
+		}else {
+			this.moveState.rollRight = -roll/Math.PI;
+			this.moveState.rollLeft = 0;
+		}
+		this.updateRotationVector();
+	}
+	flyControls.handstop = function() {
+		this.moveState.yawLeft = 0;
+		this.moveState.pitchDown = 0;
+		this.moveState.rollLeft = 0;
+		this.moveState.rollRight = 0;
+		this.updateRotationVector();
+	}
+	Math.sqr = function(x) {
+		return x * x;
+	}
+	Math.cube = function(x) {
+		return x * x * x;
+	}
+	// get distance from 2 Float32Array[3]
+	function getDistance2F(x, y) {
+		return Math.sqrt(Math.sqr(x[0]-y[0]) + Math.sqr(x[1]-y[1]) + Math.sqr(x[2]-y[2]));
+	}
+	// change value depend on hand gesture
+	function handgesture(hand) {
+		// change movementSpeed
+		let distBetweenIndexAndPinky = getDistance2F(hand.indexFinger.distal.center(), hand.pinky.distal.center());
+		flyControls.movementSpeed = Math.cube(1 - distBetweenIndexAndPinky/120)*120;
+	}
+
+	Leap.loop(function(frame) {
+		if(frame.hands.length > 0) {
+			let hand = frame.hands[0];
+			handgesture(hand);
+			// console.log(hand.roll());
+			flyControls.handmove(hand);
+		} else {
+			flyControls.handstop();
+		}
+		console.log(flyControls.phi);
+	}).use('screenPosition', {scale: 0.25});
 
 </script>
 </body>
