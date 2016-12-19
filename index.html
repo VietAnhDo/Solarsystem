@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <head>
 	<title>Space Trip</title>
-	<script src="http://js.leapmotion.com/leap-0.6.4.js"></script>
-  	<script src="http://js.leapmotion.com/leap-plugins-0.1.11.js"></script>
-	<script src='vendor/three.js/build/three.min.js' type='text/javascript'></script>
+	<script src="vendor/leapjs/leap-0.6.4.js"></script>
+  	<script src="vendor/leapjs/leap-plugins-0.1.11.js"></script>
 	<script src='vendor/jquery-3.1.1.min.js' type='text/javascript'></script>
-	<script src='../threex.planets.js' type='text/javascript'></script>
-	<script src='../threex.atmospherematerial.js' type='text/javascript'></script>
+	<script src='vendor/three.js/build/three.min.js' type='text/javascript'></script>
+	<script src='vendor/js/controls/FlyControls.js' type='text/javascript'></script>
+
+	<script src='vendor/threex/threex.planets.js' type='text/javascript'></script>
+	<script src='vendor/threex/threex.atmospherematerial.js' type='text/javascript'></script>
+	<script src='vendor/solarsystem.js' type='text/javascript'></script>
+
 	<!-- include for threex.glowdatgui -->
 	<script src='vendor/three.js/examples/js/libs/dat.gui.min.js' type='text/javascript'></script>
-	<script src='vendor/js/controls/FlyControls.js' type='text/javascript'></script>
-	<script src='solarsystem.js' type='text/javascript'></script>
 </head>
-<body style='margin: 0px; background-color: #000000; overflow: hidden;' onkeydown="onKeyDown(event)"><script>
+<body style='margin: 0px; background-color: #000000; overflow: hidden;' onkeydown="onKeyDown(event)">
+<script>
 
 	
 
@@ -69,7 +72,7 @@
 
 	// FlyControls
 	var flyControls = new THREE.FlyControls(camera, container);
-	flyControls.movementSpeed = 10;
+	flyControls.movementSpeed = 30;
 	flyControls.rollSpeed = Math.PI / 6;
 	// flyControls.autoForward = false;
 	// flyControls.dragToLook = false;
@@ -107,14 +110,12 @@
 			this.moveState.rollRight = -roll/Math.PI;
 			this.moveState.rollLeft = 0;
 		}
-		this.updateRotationVector();
 	}
 	flyControls.handstop = function() {
 		this.moveState.yawLeft = 0;
 		this.moveState.pitchDown = 0;
 		this.moveState.rollLeft = 0;
 		this.moveState.rollRight = 0;
-		this.updateRotationVector();
 	}
 	Math.sqr = function(x) {
 		return x * x;
@@ -145,7 +146,6 @@
 			dashboardContent.innerText = dashboardLabel[flyControls.moveState.forward];
 			timeOfGesture = 0;
 		}
-		flyControls.updateMovementVector();
 	}
 
 	Leap.loop(function(frame) {
@@ -157,6 +157,8 @@
 		} else {
 			flyControls.handstop();
 		}
+		flyControls.updateRotationVector();
+		flyControls.updateMovementVector();
 	}).use('screenPosition', {scale: 0.25});
 
 </script>
